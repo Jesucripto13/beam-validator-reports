@@ -44,47 +44,59 @@ Download `generate_nodes_report.py` and `generate_stakes_report.py` from this re
 ### 2. Configure the Scripts
 To use the scripts, you need to set the `NODE_ID` with your validator's hexadecimal identifier. Follow these steps to obtain it:
 
-#### Step 2.1: Obtain Your `validationID`
-1. On your server where your Avalanche node is running, execute the following command in the terminal, replacing `INSERT_YOUR_NODE_ID_HERE` with your `nodeID` (e.g., `NodeID-GvYGeH3hZrX751Ppzzaee5YiqM1EcJhxT`):
-   ```bash
-   curl -X POST --data '{"jsonrpc": "2.0", "method": "validators.getCurrentValidators", "params": {"nodeIDs": ["INSERT_YOUR_NODE_ID_HERE"]}, "id": 1}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2tmrrBo1Lgt1mzzvPSFt73kkQKFas5d1AP88tv9cicwoFp8BSn/validators
-   ```
-2. In the response, look for the `validationID` value. For example:
-   ```json
-   "validationID": "fMyGzmMYsfnyHh7VNUXk8yNk9JtanU3KrKdeaPsJwm3UYEeme"
-   ```
-   Copy this value.
+4. Update the Instructions in README.md
 
-#### Step 2.2: Convert the `validationID` to Hexadecimal
-1. On your local machine (e.g., your personal computer), create a file named `decode_validation_id.py` with the following code:
-   ```python
-   import base58
+The info.getNodeID method provides a more direct way to obtain the public key and derive the NODE_ID, so let’s update the instructions in README.md to prioritize this method. We will also keep the other options as alternatives.
 
-   # Instructions: Replace the value of validation_id with the validationID you obtained from the curl command
-   validation_id = "INSERT_YOUR_VALIDATION_ID_HERE"
+⸻
 
-   # Decode Base58 to bytes
-   decoded = base58.b58decode(validation_id)
+Updated Section of README.md (English Version)
 
-   # Extract the payload (the 32 bytes after the prefix and before the checksum)
-   payload = decoded[12:-4].hex()
+2. Configure the Scripts
 
-   # Print the hexadecimal value to use in the scripts
-   print(f"Hex value to use in the scripts: 0x{payload}")
-   ```
-2. Install the `base58` library on your local machine (this does not affect your server):
-   ```bash
-   pip install base58
-   ```
-3. Open the `decode_validation_id.py` file and replace `INSERT_YOUR_VALIDATION_ID_HERE` with the `validationID` you obtained (e.g., `fMyGzmMYsfnyHh7VNUXk8yNk9JtanU3KrKdeaPsJwm3UYEeme`).
-4. Run the script on your local machine:
-   ```bash
-   python3 decode_validation_id.py
-   ```
-   The output will be the hexadecimal value to use in the scripts. For example:
-   ```
-   Hex value to use in the scripts: 0x571ac781c64ab162b8c2c22ba49cb3dbe62e7be62d1e78f274346bd3a7dbb856
-   ```
+To use the scripts, you need to configure the NODE_ID with your validator’s hexadecimal identifier (a 32-byte hexadecimal value). This identifier is derived from your node’s public key. Follow these steps to obtain it:
+
+⸻
+
+Step 2.1: Obtain Your Node’s Public Key
+
+1. Use the info.getNodeID Method (Recommended Method)
+	•	Use the info.getNodeID method to obtain the nodeID and your node’s public key:
+
+curl -X POST --data '{ "jsonrpc":"2.0", "id":1, "method":"info.getNodeID", "params":{}}' \
+-H 'Content-Type: application/json' 127.0.0.1:9650/ext/info
+
+The response will include the nodeID and publicKey, for example:
+
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "nodeID": "NodeID-GvYGeH3hZrX751Ppzzaee5YiqM1EcJhxT",
+        "nodePOP": {
+            "publicKey": "0xab88a86...2860e6c0756ea7355b2ceaf",
+            "proofOfPossession": "..."
+        }
+    },
+    "id": 1
+}
+
+
+
+⸻
+
+Step 2.2: Derive the NODE_ID from the Public Key
+
+Use the following Python script to compute the SHA-256 hash of the public key:
+
+import hashlib
+
+# Instructions: Replace with your public key (without the 0x prefix)
+public_key_hex = "INSERT_YOUR_PUBLIC_KEY_HERE"
+public_key_bytes = bytes.fromhex(public_key_hex)
+node_id = hashlib.sha256(public_key_bytes).hexdigest()
+print(f"Hexadecimal value to use in the scripts: 0x{node_id}")
+
+The result will be a 32-byte hexadecimal value (e.g., 0x571ac781c64ab162b8c2c22ba49cb3dbe62e7be62d1e78f274346bd3a7dbb856).
 
 #### Step 2.3: Set the `NODE_ID` in the Scripts
 1. Open the scripts `generate_nodes_report.py` and `generate_stakes_report.py` in a text editor.
